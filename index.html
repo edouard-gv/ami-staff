@@ -25,11 +25,18 @@
 		async function initializeApp() {
 			
 			const homeOften=[
-			"5 rue paul Escudier 75009 Paris",
+			"rue paul Escudier 75009 Paris",
+			"Trouville-sur-mer",
+			"75013",
+			"Issy-Les-Moulineaux",
+			"Saint-Pierre-de-Frugie",
+			"Rennes",
+			"Valence"
 			];
 			
 			const homeSometimes=[
-			"10 rue des Chaumonts 02310 Saulchery",
+			"rue des Chaumonts 02310 Saulchery",
+			"Pavillon-sous-bois"
 			];
 			
 			const workOften=[
@@ -52,10 +59,10 @@
 			
 			const markers = L.featureGroup().addTo(map);
 
-			await addMarkersFrom(homeOften, markers, 'homeoften');
 			await addMarkersFrom(homeSometimes, markers, 'homesometimes');
-			await addMarkersFrom(workOften, markers, 'workoften');
 			await addMarkersFrom(workSometimes, markers, 'worksometimes');
+			await addMarkersFrom(workOften, markers, 'workoften');
+			await addMarkersFrom(homeOften, markers, 'homeoften');
 
 			if (markers.getLayers().length) {
 				map.fitBounds(markers.getBounds().pad(0.2));
@@ -64,7 +71,7 @@
 		}
 		
 		async function geocodeOne(text){
-			await new Promise(r => setTimeout(r, 40)); // ~25 req/s pour rester large
+			await new Promise(r => setTimeout(r, 100)); // ~10 req/s pour rester large
 			const url = 'https://data.geopf.fr/geocodage/search?limit=1&q=' + encodeURIComponent(text);
 			const r = await fetch(url); if(!r.ok) return null;
 			const j = await r.json();

@@ -6,19 +6,40 @@
 	<title>Ami Staff Map</title>
 	<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
 	<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+	<style>
+		img.workoften {
+			filter: hue-rotate(150deg);
+		}
+		img.worksometimes {
+			filter: hue-rotate(150deg) saturate(0.5) brightness(1.5);
+		}
+		img.homesometimes {
+			filter: saturate(0.5) brightness(1.5);
+		}
+	</style>
 </head>
 <body>
 	<div id="map" style="height:80vh"></div>
 	<script>
 		// Function to initialize the map and load CSV data
 		async function initializeApp() {
-
-			const data=[
+			
+			const homeOften=[
 			"5 rue paul Escudier 75009 Paris",
-			"20 avenue de Ségur 75007 Paris",
+			];
+			
+			const homeSometimes=[
 			"10 rue des Chaumonts 02310 Saulchery",
+			];
+			
+			const workOften=[
+			"20 avenue de Ségur 75007 Paris",
+			"26 rue Desaix 75015 Paris",
+			];
+			
+			const workSometimes=[
 			"14 avenue Ledry Rollin 75012 Paris",
-			"26 rue Desaix 75015 Paris"];
+			];
 			
 			// Initialize the map
 			const map = L.map('map').setView([48.86, 2.35], 12);
@@ -30,26 +51,34 @@
 			).addTo(map);
 			
 			const markers = L.featureGroup().addTo(map);
-			for (const addr of data) {
-				const feat = await geocodeOne(addr);
-				if (feat) {
-					const [lon, lat] = feat.geometry.coordinates;
-					L.marker([lat, lon]).addTo(markers).bindPopup(addr);
-					await new Promise(r => setTimeout(r, 40)); // ~25 req/s pour rester large
-				}
-			}
-			
+
+			await addMarkersFrom(homeOften, markers, 'homeoften');
+			await addMarkersFrom(homeSometimes, markers, 'homesometimes');
+			await addMarkersFrom(workOften, markers, 'workoften');
+			await addMarkersFrom(workSometimes, markers, 'worksometimes');
+
 			if (markers.getLayers().length) {
 				map.fitBounds(markers.getBounds().pad(0.2));
-				console.log(`Successfully added ${markers.getLayers().length} markers to the map`);
+				//console.log(`Successfully added ${markers.getLayers().length} markers to the map`);
 			}
 		}
 		
 		async function geocodeOne(text){
+			await new Promise(r => setTimeout(r, 40)); // ~25 req/s pour rester large
 			const url = 'https://data.geopf.fr/geocodage/search?limit=1&q=' + encodeURIComponent(text);
 			const r = await fetch(url); if(!r.ok) return null;
 			const j = await r.json();
 			return j.features && j.features[0] ? j.features[0] : null;
+		}
+
+		async function addMarkersFrom(data, markers, className){
+			for (const addr of data) {
+				const feat = await geocodeOne(addr);
+				if (feat) {
+					const [lon, lat] = feat.geometry.coordinates;
+					L.marker([lat, lon], {icon: new L.Icon.Default({className: className})}).addTo(markers)//.bindPopup(addr);
+				}
+			}
 		}
 		
 		// Initialize the app when the page loads
